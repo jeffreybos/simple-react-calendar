@@ -65,7 +65,7 @@ export type Props = {
     start: IDate
     end: IDate
   }
-  hightlightedArray?: any[],
+  highlightedArray?: any[],
   maxDate?: IDate | undefined
   minDate?: IDate | undefined
   minNumberOfWeeks?: number
@@ -192,15 +192,15 @@ export default class Calendar extends Component<Props, State> {
   }
 
   _highlightedArray() {
-    const { hightlightedArray } = this.props;
-    if (!hightlightedArray) return [{ end: null, start: null }];
+    const { highlightedArray } = this.props;
+    if (!highlightedArray) return [{ end: null, start: null }];
 
-    const validDates =  hightlightedArray.every(res => {
+    const validDates =  highlightedArray.every(res => {
       return isValid(res.start) && isValid(res.end);
     });
 
     if(validDates) {
-      return hightlightedArray;
+      return highlightedArray;
     }
 
     return [{ end: null, start: null }];
