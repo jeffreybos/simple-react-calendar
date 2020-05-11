@@ -65,6 +65,7 @@ export type Props = {
     start: IDate
     end: IDate
   }
+  hightlightedArray?: any[],
   maxDate?: IDate | undefined
   minDate?: IDate | undefined
   minNumberOfWeeks?: number
@@ -190,6 +191,21 @@ export default class Calendar extends Component<Props, State> {
     return { end: null, start: null }
   }
 
+  _highlightedArray() {
+    const { hightlightedArray } = this.props;
+    if (!hightlightedArray) return [{ end: null, start: null }];
+
+    const validDates =  hightlightedArray.every(res => {
+      return isValid(res.start) && isValid(res.end);
+    });
+
+    if(validDates) {
+      return hightlightedArray;
+    }
+
+    return [{ end: null, start: null }];
+  }
+
   _selection() {
     const start = this._selectionStart()
     const end = this._selectionEnd()
@@ -272,8 +288,9 @@ export default class Calendar extends Component<Props, State> {
       getISODate
     } = this.props
 
-    const selection = this._selection()
-    const highlight = this._highlight()
+    const selection = this._selection();
+    const highlight = this._highlight();
+    const highlightedArray = this._highlightedArray();
 
     return (
       // @ts-ignore: No overload matches this call
@@ -291,6 +308,7 @@ export default class Calendar extends Component<Props, State> {
         disabledIntervals={disabledIntervals}
         highlightedEnd={highlight.end}
         highlightedStart={highlight.start}
+        highlightedArray={highlightedArray}
         maxDate={maxDate}
         minDate={minDate}
         minNumberOfWeeks={minNumberOfWeeks}

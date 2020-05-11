@@ -33,7 +33,8 @@ export type Props = {
   getDayFormatted: typeof helper.getDayFormatted
   getISODate: typeof helper.getISODate
   highlightedEnd?: IDate
-  highlightedStart?: IDate
+  highlightedStart?: IDate,
+  highlightedArray?: IDate[],
   maxDate?: IDate
   minDate?: IDate
   onDayClick: OnDayClick
@@ -81,15 +82,27 @@ export default class Week extends Component<Props, {}> {
   }
 
   _dateHighlighted(date: Date) {
-    const { highlightedStart, highlightedEnd } = this.props
+    const { highlightedStart, highlightedEnd, highlightedArray } = this.props;
 
-    if (!highlightedStart || !highlightedEnd) return false
+    if(highlightedArray) {
+      return highlightedArray.some((res: any) => {
+        return isWithinRange(
+          startOfDay(date),
+          startOfDay(res.start),
+          startOfDay(res.end)
+        )
+      });
+    }
 
-    return isWithinRange(
-      startOfDay(date),
-      startOfDay(highlightedStart),
-      startOfDay(highlightedEnd)
-    )
+    if(highlightedStart && highlightedEnd) {
+      return isWithinRange(
+        startOfDay(date),
+        startOfDay(highlightedStart),
+        startOfDay(highlightedEnd)
+      )
+    }
+
+    return false
   }
 
   _dateDisabled(date: Date | string) {

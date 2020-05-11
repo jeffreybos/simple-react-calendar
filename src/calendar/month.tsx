@@ -40,6 +40,7 @@ export type Props = {
   getISODate: typeof helper.getISODate
   highlightedEnd?: IDate
   highlightedStart?: IDate
+  highlightedArray?: IDate[]
   maxDate?: IDate
   minDate?: IDate
   minNumberOfWeeks?: number
@@ -352,6 +353,7 @@ export default class Month extends Component<Props, {}> {
       selectedMax,
       highlightedStart,
       highlightedEnd,
+      highlightedArray,
       disabledIntervals,
       activeMonth,
       today,
@@ -400,6 +402,7 @@ export default class Month extends Component<Props, {}> {
           disabledIntervals={disabledIntervals}
           highlightedEnd={highlightedEnd}
           highlightedStart={highlightedStart}
+          highlightedArray={highlightedArray}
           key={week.getTime()}
           maxDate={maxDate}
           minDate={minDate}
