@@ -65,7 +65,7 @@ export type Props = {
     start: IDate
     end: IDate
   }
-  highlightedArray?: any[],
+  highlightedArray  ?: any[],
   maxDate?: IDate | undefined
   minDate?: IDate | undefined
   minNumberOfWeeks?: number

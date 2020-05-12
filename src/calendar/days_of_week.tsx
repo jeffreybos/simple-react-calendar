@@ -42,7 +42,7 @@ const DaysOfWeek: FC<Props> & {
       blockClassName,
       day,
       isWeekend: index > FRIDAY_INDEX,
-      key: day
+      key: index
     })
   )
 
