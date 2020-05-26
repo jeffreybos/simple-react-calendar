@@ -1,4 +1,4 @@
-import React, { Component, ComponentProps, ReactElement } from 'react'
+import React, {Component, ComponentProps, ReactElement} from 'react'
 import isSameMonth from 'date-fns/is_same_month'
 import isValidDate from 'date-fns/is_valid'
 import startOfMonth from 'date-fns/start_of_month'
@@ -65,7 +65,7 @@ export type Props = {
     start: IDate
     end: IDate
   }
-  highlightedArray  ?: any[],
+  highlightedArray?: any[],
   maxDate?: IDate | undefined
   minDate?: IDate | undefined
   minNumberOfWeeks?: number
@@ -84,7 +84,9 @@ export type Props = {
   renderWeek?: IWeekRenderProps
   selected?: IDate | ISelectionRange
   today?: IDate
-  weekStartsOn?: number
+  showWeekOnly?: boolean,
+  weekStartsOn?: number,
+  showOnlySelectedWeek?: boolean
 }
 
 type State = {
@@ -97,6 +99,7 @@ type State = {
 /* eslint-disable react/require-optimization */
 export default class Calendar extends Component<Props, State> {
   static defaultProps = {
+    showOnlySelectedWeek: false,
     blockClassName: BLOCK_CLASS_NAME,
     daysOfWeek: DAYS_OF_WEEK,
     disableDaysOfWeek: false,
@@ -128,18 +131,18 @@ export default class Calendar extends Component<Props, State> {
   // TODO: FC Rewrite
   /* eslint-disable react/no-deprecated */
   componentWillReceiveProps(nextProps: Props) {
-    const { activeMonth } = this.props
+    const {activeMonth} = this.props
 
     if (
       nextProps.activeMonth &&
       !isSameMonth(nextProps.activeMonth, activeMonth as IDate)
     ) {
-      this.setState({ activeMonth: startOfMonth(nextProps.activeMonth) })
+      this.setState({activeMonth: startOfMonth(nextProps.activeMonth)})
     }
   }
 
   _initialMonth(props: Props) {
-    const { selected, activeMonth, mode, today } = props || this.props
+    const {selected, activeMonth, mode, today} = props || this.props
 
     if (isValid(activeMonth as Date)) {
       return activeMonth
@@ -157,7 +160,7 @@ export default class Calendar extends Component<Props, State> {
   }
 
   _switchMonth(date: Date) {
-    const { onMonthChange } = this.props
+    const {onMonthChange} = this.props
 
     if (typeof onMonthChange === 'function') {
       onMonthChange(date)
@@ -169,7 +172,7 @@ export default class Calendar extends Component<Props, State> {
   }
 
   _activeMonth() {
-    const { onMonthChange, activeMonth } = this.props
+    const {onMonthChange, activeMonth} = this.props
 
     if (onMonthChange) {
       return activeMonth
@@ -179,31 +182,31 @@ export default class Calendar extends Component<Props, State> {
   }
 
   _highlight() {
-    const { highlighted } = this.props
+    const {highlighted} = this.props
 
-    if (!highlighted) return { end: null, start: null }
+    if (!highlighted) return {end: null, start: null}
 
-    const { start, end } = highlighted
+    const {start, end} = highlighted
 
     if (isValid(start as Date) && isValid(end as Date)) {
-      return { end, start }
+      return {end, start}
     }
-    return { end: null, start: null }
+    return {end: null, start: null}
   }
 
   _highlightedArray() {
-    const { highlightedArray } = this.props;
-    if (!highlightedArray) return [{ end: null, start: null }];
+    const {highlightedArray} = this.props;
+    if (!highlightedArray) return [{end: null, start: null}];
 
-    const validDates =  highlightedArray.every(res => {
+    const validDates = highlightedArray.every(res => {
       return isValid(res.start) && isValid(res.end);
     });
 
-    if(validDates) {
+    if (validDates) {
       return highlightedArray;
     }
 
-    return [{ end: null, start: null }];
+    return [{end: null, start: null}];
   }
 
   _selection() {
@@ -211,9 +214,9 @@ export default class Calendar extends Component<Props, State> {
     const end = this._selectionEnd()
 
     if (isValid(start) && isValid(end)) {
-      return { end, start }
+      return {end, start}
     }
-    return { end: null, start: null }
+    return {end: null, start: null}
   }
 
   _selectionStart(): Date {
@@ -225,8 +228,8 @@ export default class Calendar extends Component<Props, State> {
   }
 
   _selectionDate(dateType: IDateSelection) {
-    const { selected, onSelectionProgress, mode } = this.props
-    const { selection } = this.state
+    const {selected, onSelectionProgress, mode} = this.props
+    const {selection} = this.state
 
     switch (mode) {
       case 'single':
@@ -241,24 +244,24 @@ export default class Calendar extends Component<Props, State> {
   }
 
   _selectionChanged(selection: ISelection) {
-    const { start, end, inProgress } = selection
-    const { mode, onSelect, onSelectionProgress } = this.props
+    const {start, end, inProgress} = selection
+    const {mode, onSelect, onSelectionProgress} = this.props
 
     if (onSelect && start && (mode !== 'range' || !inProgress)) {
-      onSelect(mode === 'single' ? start : { end, start })
+      onSelect(mode === 'single' ? start : {end, start})
     }
 
     if (mode === 'range') {
       if (onSelectionProgress) {
         onSelectionProgress(selection)
       } else {
-        this.setState({ selection: inProgress ? { end, start } : null })
+        this.setState({selection: inProgress ? {end, start} : null})
       }
     }
   }
 
   _noticeChanged(shownNoticeType: helper.NoticeMessageType) {
-    this.setState({ shownNoticeType })
+    this.setState({shownNoticeType})
   }
 
   _today() {
@@ -284,6 +287,8 @@ export default class Calendar extends Component<Props, State> {
       renderMonth,
       renderDaysOfWeek,
       renderDayOfWeek,
+      selected,
+      showWeekOnly,
       getDayFormatted,
       getISODate
     } = this.props
@@ -319,7 +324,9 @@ export default class Calendar extends Component<Props, State> {
         rangeLimit={rangeLimit}
         selectedMax={selection.end}
         selectedMin={selection.start}
+        showWeekOnly={showWeekOnly}
         today={this._today()}
+        selected={selected}
         weekStartsOn={weekStartsOn as number}
         getISODate={getISODate}
       />
@@ -335,6 +342,7 @@ export default class Calendar extends Component<Props, State> {
       headerPrevTitle,
       maxDate,
       minDate,
+      showOnlySelectedWeek,
       MonthHeaderComponent = MonthHeader,
       renderMonthHeader
     } = this.props
@@ -351,6 +359,7 @@ export default class Calendar extends Component<Props, State> {
         headerPrevTitle={headerPrevTitle}
         maxDate={maxDate}
         minDate={minDate}
+        showOnlySelectedWeek={showOnlySelectedWeek}
         onMonthChange={this._switchMonth.bind(this)}
       />
     )
@@ -365,7 +374,7 @@ export default class Calendar extends Component<Props, State> {
         <Notice {...props} />
       )
     } = this.props
-    const { shownNoticeType } = this.state
+    const {shownNoticeType} = this.state
 
     const children = (
       <>

@@ -1,4 +1,4 @@
-import React, { Component, SyntheticEvent } from 'react'
+import React, {Component, SyntheticEvent} from 'react'
 import addDays from 'date-fns/add_days'
 import areRangesOverlapping from 'date-fns/are_ranges_overlapping'
 import differenceInCalendarDays from 'date-fns/difference_in_calendar_days'
@@ -11,6 +11,7 @@ import parse from 'date-fns/parse'
 import startOfMonth from 'date-fns/start_of_month'
 import startOfWeek from 'date-fns/start_of_week'
 import subDays from 'date-fns/sub_days'
+import isSameWeek from 'date-fns/is_same_week'
 
 import * as helper from '../helper'
 import {
@@ -54,9 +55,12 @@ export type Props = {
   renderDaysOfWeek?: IDaysOfWeekRenderProps
   renderWeek?: IWeekRenderProps
   selectedMax?: IDate
-  selectedMin?: IDate
+  selectedMin?: IDate,
+  selected: IDate,
+  showWeekOnly: boolean,
   today: IDate
-  weekStartsOn: number
+  weekStartsOn: number,
+  showOnlySelectedWeek: boolean
 }
 
 type IInterval = {
@@ -71,12 +75,12 @@ export default class Month extends Component<Props, {}> {
     event.preventDefault()
     const {
       currentTarget: {
-        dataset: { simpleReactCalendarDay }
+        dataset: {simpleReactCalendarDay}
       }
     } = event
     const date = parse(simpleReactCalendarDay as string)
 
-    const { onDayMouseEnter } = this.props
+    const {onDayMouseEnter} = this.props
 
     if (onDayMouseEnter) {
       onDayMouseEnter(date)
@@ -87,7 +91,7 @@ export default class Month extends Component<Props, {}> {
     // @ts-ignore
     if (!this._selectionInProgress) return
 
-    const { rangeLimit } = this.props
+    const {rangeLimit} = this.props
     // TODO: simplify with FC approach, remove state logic from child components
     //       this is passed from the parent component
     // @ts-ignore
@@ -124,11 +128,11 @@ export default class Month extends Component<Props, {}> {
 
     const {
       currentTarget: {
-        dataset: { simpleReactCalendarDay }
+        dataset: {simpleReactCalendarDay}
       }
     } = event
     const date = parse(simpleReactCalendarDay as string)
-    const { mode } = this.props
+    const {mode} = this.props
 
     if (mode === RANGE_MODE) {
       // TODO: simplify with FC approach, remove state logic from child components
@@ -212,14 +216,14 @@ export default class Month extends Component<Props, {}> {
   }
 
   handleOnDisabledDayClick = (event: SyntheticEvent<HTMLButtonElement>) => {
-    const { onNoticeChange } = this.props
+    const {onNoticeChange} = this.props
 
     event.preventDefault()
     onNoticeChange('disabled_day_click')
   }
 
   _pushUpdate() {
-    const { onChange, rangeLimit } = this.props
+    const {onChange, rangeLimit} = this.props
     let end, start
 
     // TODO: simplify with FC approach, remove state logic from child components
@@ -265,7 +269,7 @@ export default class Month extends Component<Props, {}> {
   }
 
   _getMinDate() {
-    const { rangeLimit, minDate } = this.props
+    const {rangeLimit, minDate} = this.props
     // TODO: simplify with FC approach, remove state logic from child components
     //       this is passed from the parent component
     // @ts-ignore
@@ -280,19 +284,19 @@ export default class Month extends Component<Props, {}> {
   }
 
   _pushNoticeUpdate(noticeType: helper.NoticeMessageType) {
-    const { onNoticeChange } = this.props
+    const {onNoticeChange} = this.props
 
     return onNoticeChange(noticeType)
   }
 
   _getDisabledRange(interval: IInterval) {
-    const { start, end } = interval
-    const { disabledIntervals } = this.props
+    const {start, end} = interval
+    const {disabledIntervals} = this.props
 
     if (!disabledIntervals) return true
 
     for (let i = 0; i < disabledIntervals.length; i++) {
-      const { start: intervalStart, end: intervalEnd } = disabledIntervals[i]
+      const {start: intervalStart, end: intervalEnd} = disabledIntervals[i]
 
       if (
         areRangesOverlapping(
@@ -310,7 +314,7 @@ export default class Month extends Component<Props, {}> {
   }
 
   _getMaxDate() {
-    const { rangeLimit, maxDate } = this.props
+    const {rangeLimit, maxDate} = this.props
     // TODO: simplify with FC approach, remove state logic from child components
     //       this is passed from the parent component
     // @ts-ignore
@@ -363,13 +367,15 @@ export default class Month extends Component<Props, {}> {
       weekStartsOn,
       renderDay,
       renderWeek,
+      selected,
+      showWeekOnly,
       getDayFormatted,
       getISODate
     } = this.props
     const weeks = []
-    let { minDate, maxDate } = this.props
-    let date = startOfWeek(startOfMonth(activeMonth), { weekStartsOn })
-    const end = endOfWeek(endOfMonth(activeMonth), { weekStartsOn })
+    let {minDate, maxDate} = this.props
+    let date = startOfWeek(startOfMonth(activeMonth), {weekStartsOn})
+    const end = endOfWeek(endOfMonth(activeMonth), {weekStartsOn})
 
     // TODO: simplify with FC approach, remove state logic from child components
     //       this is passed from the parent component
@@ -382,46 +388,77 @@ export default class Month extends Component<Props, {}> {
     while (
       // TODO: External helper with weeknumber etc
       /* eslint-disable no-unmodified-loop-condition */
-      (typeof minNumberOfWeeks === 'number' &&
-        minNumberOfWeeks > weeks.length) ||
-      isBefore(date, end) ||
-      isSameDay(date, end)
-    ) {
+    (typeof minNumberOfWeeks === 'number' &&
+      minNumberOfWeeks > weeks.length) ||
+    isBefore(date, end) ||
+    isSameDay(date, end)
+      ) {
       weeks.push(date)
       date = addDays(date, 7)
     }
 
-    return weeks.map(week => {
-      return (
-        <Week
-          activeMonth={activeMonth}
-          blockClassName={blockClassName}
-          customRender={renderWeek}
-          getDayFormatted={getDayFormatted}
-          date={week}
-          disabledIntervals={disabledIntervals}
-          highlightedEnd={highlightedEnd}
-          highlightedStart={highlightedStart}
-          highlightedArray={highlightedArray}
-          key={week.getTime()}
-          maxDate={maxDate}
-          minDate={minDate}
-          onDayClick={this.handleOnDayClick}
-          onDayMouseEnter={this.handleOnDayMouseEnter}
-          onDisabledDayClick={this.handleOnDisabledDayClick}
-          renderDay={renderDay}
-          selectedMax={selectedMax}
-          selectedMin={selectedMin}
-          today={today}
-          weekStartsOn={weekStartsOn}
-          getISODate={getISODate}
-        />
-      )
-    })
+    if (showWeekOnly) {
+      return weeks.map(week => {
+        return (
+          isSameWeek(selected, week) &&
+          <Week
+              activeMonth={activeMonth}
+              blockClassName={blockClassName}
+              customRender={renderWeek}
+              getDayFormatted={getDayFormatted}
+              date={week}
+              disabledIntervals={disabledIntervals}
+              highlightedEnd={highlightedEnd}
+              highlightedStart={highlightedStart}
+              highlightedArray={highlightedArray}
+              key={week.getTime()}
+              maxDate={maxDate}
+              minDate={minDate}
+              onDayClick={this.handleOnDayClick}
+              onDayMouseEnter={this.handleOnDayMouseEnter}
+              onDisabledDayClick={this.handleOnDisabledDayClick}
+              renderDay={renderDay}
+              selectedMax={selectedMax}
+              selectedMin={selectedMin}
+              today={today}
+              weekStartsOn={weekStartsOn}
+              getISODate={getISODate}
+          />
+        )
+      })
+    } else {
+      return weeks.map(week => {
+        return (
+          <Week
+            activeMonth={activeMonth}
+            blockClassName={blockClassName}
+            customRender={renderWeek}
+            getDayFormatted={getDayFormatted}
+            date={week}
+            disabledIntervals={disabledIntervals}
+            highlightedEnd={highlightedEnd}
+            highlightedStart={highlightedStart}
+            highlightedArray={highlightedArray}
+            key={week.getTime()}
+            maxDate={maxDate}
+            minDate={minDate}
+            onDayClick={this.handleOnDayClick}
+            onDayMouseEnter={this.handleOnDayMouseEnter}
+            onDisabledDayClick={this.handleOnDisabledDayClick}
+            renderDay={renderDay}
+            selectedMax={selectedMax}
+            selectedMin={selectedMin}
+            today={today}
+            weekStartsOn={weekStartsOn}
+            getISODate={getISODate}
+          />
+        )
+      })
+    }
   }
 
   render() {
-    const { blockClassName, customRender } = this.props
+    const {blockClassName, customRender} = this.props
 
     const children = (
       <>
