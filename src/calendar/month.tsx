@@ -400,7 +400,7 @@ export default class Month extends Component<Props, {}> {
     if (showWeekOnly) {
       return weeks.map(week => {
         return (
-          isSameWeek(selected, week) &&
+          isSameWeek(selected, week, {weekStartsOn: 1}) &&
           <Week
               activeMonth={activeMonth}
               blockClassName={blockClassName}
